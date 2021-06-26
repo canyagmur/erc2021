@@ -1,0 +1,10 @@
+//HOW TO BUILD A DOCKER IMAGE ?
+
+	STRUCTURE:
+		docker build [OPTIONS] PATH | URL | -
+	
+	EXAMPLES:
+	   i)	docker build -t erc_img_2021_2 . //build a docker image with specified tag ("." corresponds to dockerfile in the current directory!)
+	   ii)  docker build -t erc_img_2021_2 --build-arg FREEDOM_URL=<content> .  (pass arguments)
+	
+		

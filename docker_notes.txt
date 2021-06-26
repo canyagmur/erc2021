@@ -8,3 +8,18 @@
 	   ii)  docker build -t erc_img_2021_2 --build-arg FREEDOM_URL=<content> .  (pass arguments)
 	
 		
+//HOW TO RUN A CONTAINER ?
+
+        STRUCTURE:
+                docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+        OPTIONS:
+           i)   --net=<content> (Connect a container to a network)   eg: --net=host
+	   ii)  -it (enable host machine's keyboard and other stuff)  ---I need to look here again.
+	   iii)  -e ENV_NAME=<content> (overwrite an env variable)   eg: -e ROS_IP=192.168.0.13
+	   iiii) -v (Bind mount a volume)   			     eg: -v /tmp/.X11-unix:/tmp/.X11-unix
+	   iiiii) --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all (activate GPUS)
+	   iiiiii) --name <content>   (specify a name to the running container)			
+
+	 SOME OF CURRENTLY USED EXAMPLES:
+	   i) docker run --net=host -it -e ROS_IP=192.168.0.13 -e ROS_MASTER_URI=http://192.168.0.13:11311  -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all --privileged --name mytrial mytrial

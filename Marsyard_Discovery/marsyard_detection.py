@@ -14,6 +14,12 @@ import argparser
 import os.path
 
 
+#THIS SCRIPT TAKES TWO ARGUMENTS : dir,subs
+#ARGUMENTS CAN BE GIVEN AS FOLLOW : python marsyard_detection.py --kwargs dir=<valid_string_directory> subs=<valid_string_topic>
+#ORDER OF ARGUMENTS IS NOT IMPORTANT !
+
+
+
 i=0
 j=0
 

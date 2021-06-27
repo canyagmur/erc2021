@@ -19,9 +19,10 @@ import os.path
 #ORDER OF ARGUMENTS IS NOT IMPORTANT !
 
 
-
-i=0
+#If i = 1 , j must be 7 to save images concurrently.
+i=0 
 j=0
+
 
 DIRECTORY = "/home/canyagmur/Desktop/marsyard_images_2021"
 sub_topic = "/zed2/left_raw/image_raw_color"
@@ -120,7 +121,7 @@ def draw_contours(black_image,image, contours,color_of_contour,limit_area,text,t
             #cv2.circle(image, (cx,cy),(int)(2),(0,0,255),thickness=2)
             cv2.circle(black_image, (cx,cy),(int)(2),(0,0,255),thickness=1)
             #print ("Area: {}, Perimeter: {}".format(area, perimeter))
-    if(j>700):
+    if(j>175):
         cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),image)#CHECK DIRECTORY
         cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),black_image)#CHECK DIRECTORY
         print("proccesed images are saved!")
@@ -227,7 +228,7 @@ def image_callback(ros_image):
   frame=cv_image
   black_image = np.zeros([frame.shape[0],frame.shape[1],3],'uint8')
   
-  if cv2.waitKey(1) == ord(' ') or i>=100:
+  if cv2.waitKey(1) == ord(' ') or i>=25:
    cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),frame)# CHECK DIRECTORY
    print("raw image is saved!")
    i=0

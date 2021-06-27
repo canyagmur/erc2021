@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-config=yaml.load(open("./config.yaml"),Loader=yaml.FullLoader)
-
 
 from datetime import datetime
 import rospy
@@ -13,6 +11,7 @@ import numpy as np
 import time
 i=0
 j=0
+DIRECTORY = "/home/canyagmur/Desktop/marsyard_images_2021"
 
 bridge = CvBridge()
 
@@ -76,8 +75,8 @@ def draw_contours(black_image,image, contours,color_of_contour,limit_area,text,t
             cv2.circle(black_image, (cx,cy),(int)(2),(0,0,255),thickness=1)
             #print ("Area: {}, Perimeter: {}".format(area, perimeter))
     if(j>700):
-        cv2.imwrite("DIRECTORY/savedImage{}.jpg".format(datetime.now()),image)#CHECK DIRECTORY
-        cv2.imwrite("DIRECTORY/savedImage{}.jpg".format(datetime.now()),black_image)#CHECK DIRECTORY
+        cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),image)#CHECK DIRECTORY
+        cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),black_image)#CHECK DIRECTORY
         print("proccesed images are saved!")
         j=0
 def get_contour_center(contour):
@@ -177,12 +176,12 @@ def image_callback(ros_image):
   except CvBridgeError as e:
       print(e)
   #from now on, you can work exactly like with opencv---------
-  #cv2.imshow("RGB Image",cv_image)
+  cv2.imshow("RGB Image",cv_image)
   frame=cv_image
   black_image = np.zeros([frame.shape[0],frame.shape[1],3],'uint8')
   
   if cv2.waitKey(1) == ord(' ') or i>=100:
-   cv2.imwrite("DIRECTORY/savedImage{}.jpg".format(datetime.now()),frame)# CHECK DIRECTORY
+   cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),frame)# CHECK DIRECTORY
    print("raw image is saved!")
    i=0
    
@@ -201,13 +200,13 @@ def image_callback(ros_image):
   detectRight(frame,black_image)
 
   detectYellow(frame,black_image)
-  #cv2.imshow("RGB Image Contours",frame)
-  #cv2.imshow("Black Image Contours",black_image)
+  cv2.imshow("RGB Image Contours",frame)
+  cv2.imshow("Black Image Contours",black_image)
 
   
 def main(args):
   rospy.init_node('marsyard_image_proccessing', anonymous=True)
-  image_sub = rospy.Subscriber("/zed2/right_raw/image_raw_color",Image, image_callback) #Check topic
+  image_sub = rospy.Subscriber("/zed2/left_raw/image_raw_color",Image, image_callback) #Check topic /zed2/right_raw/image_raw_color
   try:
     rospy.spin()
   except KeyboardInterrupt:

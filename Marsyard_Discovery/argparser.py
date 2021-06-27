@@ -14,4 +14,14 @@ class keyvalue(argparse.Action):
 			# assign into dictionary
 			getattr(namespace, self.dest)[key] = value
 
+# creating parser pbject
+parser = argparse.ArgumentParser()
+
+# adding an arguments
+parser.add_argument('--kwargs',
+					nargs='*',
+					action = keyvalue)
+
+#parsing arguments
+args = parser.parse_args()
 

@@ -9,9 +9,45 @@ from cv_bridge import CvBridge, CvBridgeError
 import sys
 import numpy as np
 import time
+import argparse
+import argparser
+import os.path
+
+
 i=0
 j=0
+
 DIRECTORY = "/home/canyagmur/Desktop/marsyard_images_2021"
+sub_topic = "/zed2/left_raw/image_raw_color"
+
+# creating parser pbject
+parser = argparse.ArgumentParser()
+
+# adding an arguments
+parser.add_argument('--kwargs',
+                    nargs='*',
+                    action = argparser.keyvalue)
+
+#parsing arguments
+args = parser.parse_args()
+
+# show the dictionary
+if(bool(args.kwargs)!=0):
+    if(args.kwargs.has_key("dir")):
+        DIRECTORY = args.kwargs["dir"]
+    if(args.kwargs.has_key("subs")):
+        sub_topic = args.kwargs["subs"]
+else:
+    print("No arguments passed. Default values will be used.")
+
+if(os.path.isdir(DIRECTORY)!=1):
+    print("Directory is not a valid one!")
+    print("Exiting...")
+    sys.exit(0)
+
+print("Subscribed Topic : "+sub_topic)
+print("Treasure Directory : "+DIRECTORY)
+
 
 bridge = CvBridge()
 
@@ -95,7 +131,7 @@ def getContours(binary_image):
     #                                           cv2.CHAIN_APPROX_SIMPLE)
     contours, hierarchy = cv2.findContours(binary_image.copy(), 
                                             cv2.RETR_EXTERNAL,
-	                                        cv2.CHAIN_APPROX_SIMPLE)[-2:]
+                                            cv2.CHAIN_APPROX_SIMPLE)[-2:]
     return contours
 
 def filter_color(rgb_image, lower_bound_color, upper_bound_color):
@@ -206,7 +242,8 @@ def image_callback(ros_image):
   
 def main(args):
   rospy.init_node('marsyard_image_proccessing', anonymous=True)
-  image_sub = rospy.Subscriber("/zed2/left_raw/image_raw_color",Image, image_callback) #Check topic /zed2/right_raw/image_raw_color
+  image_sub = rospy.Subscriber(sub_topic,Image, image_callback) #Check topic /zed2/right_raw/image_raw_color
+  #print(type(rospy.get_published_topics()))
   try:
     rospy.spin()
   except KeyboardInterrupt:

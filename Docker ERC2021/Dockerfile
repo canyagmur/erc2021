@@ -67,8 +67,6 @@ RUN apt-get update && rm /etc/ros/rosdep/sources.list.d/20-default.list && rosde
 # Build packages
 RUN /bin/bash -c '. /opt/ros/melodic/setup.bash; cd /catkin_ws; catkin build -DCMAKE_BUILD_TYPE=Release'
 
-RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc && \
-    echo "source /catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 # Install Freedom scripts
 RUN mkdir /freedom

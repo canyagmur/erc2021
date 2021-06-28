@@ -12,6 +12,7 @@ import time
 import argparse
 import argparser
 import os.path
+#import keyboard
 
 
 #THIS SCRIPT TAKES THREE ARGUMENTS : dir,subs, show
@@ -232,6 +233,9 @@ def image_callback(ros_image):
    cv2.imwrite(DIRECTORY+"/savedImage{}.jpg".format(datetime.now()),frame)# CHECK DIRECTORY
    print("raw image is saved!")
    i=0
+  #if keyboard.wait(" "):
+   #cv2.imwrite(DIRECTORY+"/savedImageByUser{}.jpg".format(datetime.now()),frame)# CHECK DIRECTORY
+   #print("USER : raw image is saved!")
    
   
   

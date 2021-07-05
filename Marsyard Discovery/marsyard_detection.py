@@ -237,6 +237,7 @@ def image_callback(ros_image):
   #from now on, you can work exactly like with opencv---------
   if(show_image):
     cv2.imshow("RGB Image",cv_image)
+    cv2.waitKey(1)
   frame=cv_image
   black_image = np.zeros([frame.shape[0],frame.shape[1],3],'uint8')
   
@@ -270,6 +271,7 @@ def image_callback(ros_image):
   if(show_image):
     cv2.imshow("RGB Image Contours",frame)
     cv2.imshow("Black Image Contours",black_image)
+    cv2.waitKey(1)
 
   
 def main(args):

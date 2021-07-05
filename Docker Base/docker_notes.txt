@@ -23,3 +23,4 @@
 
 	 SOME OF CURRENTLY USED EXAMPLES:
 	   i) docker run --net=host -it -e ROS_IP=192.168.0.13 -e ROS_MASTER_URI=http://192.168.0.13:11311  -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY --gpus all -e NVIDIA_DRIVER_CAPABILITIES=all --privileged --name mytrial mytrial
+	   ii) docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY  --net=host -it   --env-file credentials.env  --privileged --name marsyard_erc_mk3 marsyard_erc_mk3 (// HERE Xhost is being used due to python pynput library! ALSO you need to run "xhost +local:root" in your local machine.)

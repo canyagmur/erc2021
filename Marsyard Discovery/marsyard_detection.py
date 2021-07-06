@@ -222,6 +222,27 @@ def detectRight(image_frame,black_image):
     contours = getContours(binary_image_mask)
     draw_contours(black_image,rgb_image, contours,(0, 0, 0),1000,"RIGHT",thick=3)
 
+def save_callback(msg):
+    try:
+        image = rospy.wait_for_message(msg.data, Image, timeout=5.0)
+    except rospy.ROSException as e:
+        rospy.logerr("Failed to retrieve image: %s" % (e,))
+        return
+
+    try:
+        cv2_img = bridge.imgmsg_to_cv2(image, "bgr8")
+    except CvBridgeError as e:
+        rospy.logerr("Failed to convert image: %s" % (e,))
+        return
+
+
+
+    cv2.imwrite(DIRECTORY+"/savedImageByUser{}.jpg".format(datetime.now()),cv2_img)# CHECK DIRECTORY
+
+    rospy.loginfo("Saved image from %s topic to %s directory", msg.data, DIRECTORY)
+    #print("Saved image from %s topic to %s directory", msg.data,DIRECTORY)
+
+
 
 def image_callback(ros_image):
   #print 'got an image'
@@ -276,7 +297,8 @@ def image_callback(ros_image):
   
 def main(args):
   rospy.init_node('marsyard_image_proccessing', anonymous=True)
-  image_sub = rospy.Subscriber(sub_topic,Image, image_callback) #Check topic /zed2/right_raw/image_raw_color
+  rospy.Subscriber(sub_topic,Image, image_callback) #Check topic /zed2/right_raw/image_raw_color
+  rospy.Subscriber("/image_saver/save", String, save_callback)
   #print(type(rospy.get_published_topics()))
   try:
     rospy.spin()

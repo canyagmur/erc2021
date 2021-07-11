@@ -13,12 +13,17 @@ import argparse
 import argparser
 import os.path
 from pynput.keyboard import Listener  #used for save image from terminal
+from matplotlib import pyplot as plt
+from numpy.lib.type_check import imag
+
 
 spacePressed = False
+p_Pressed = False
 
-#THIS SCRIPT TAKES THREE ARGUMENTS : dir,subs, show
-#ARGUMENTS CAN BE GIVEN AS FOLLOW : python marsyard_detection.py --kwargs dir=<valid_string_directory> subs=<valid_string_topic> show=<valid_boolean_decision>
+#THIS SCRIPT TAKES FOUR ARGUMENTS : dir,subs, showIP, showPH
+#ARGUMENTS CAN BE GIVEN AS FOLLOW : python marsyard_detection.py --kwargs dir=<valid_string_directory> subs=<valid_string_topic> showIP=<valid_boolean_decision>,showPH=<valid_boolean_decision>
 #ORDER OF ARGUMENTS IS NOT IMPORTANT !
+intialTracbarVals = [153,498,160,670]
 
 
 #If i = 1 , j must be 7 to save images concurrently.
@@ -27,8 +32,11 @@ j=0
 
 def keyPressed(key):
     global spacePressed
+    global p_Pressed
     if(str(key) == "Key.space"):
         spacePressed = True
+    if(str(key) == "u'p'"):
+        p_Pressed = True
 
 listener = Listener(on_press=keyPressed)
 listener.start()
@@ -38,6 +46,7 @@ listener.start()
 DIRECTORY = "/home/canyagmur/Desktop/marsyard_images_2021"
 sub_topic = "/zed2/left_raw/image_raw_color"
 show_image = False
+show_PH = False
 
 # creating parser pbject
 parser = argparse.ArgumentParser()
@@ -56,8 +65,10 @@ if(bool(args.kwargs)!=0):
         DIRECTORY = args.kwargs["dir"]
     if(args.kwargs.has_key("subs")):
         sub_topic = args.kwargs["subs"]
-    if(args.kwargs.has_key("show")):
-        show_image = bool(args.kwargs["show"])
+    if(args.kwargs.has_key("showIP")):
+        show_image = bool(args.kwargs["showIP"])
+    if(args.kwargs.has_key("showPH")):
+        show_PH = bool(args.kwargs["showPH"])
 else:
     print("No arguments passed. Default values will be used.")
 
@@ -68,7 +79,8 @@ if(os.path.isdir(DIRECTORY)!=1):
 
 print("Subscribed Topic : "+sub_topic)
 print("Treasure Directory : "+DIRECTORY)
-print("Show Images : "+ str(show_image))
+print("Show Image Processes  : "+ str(show_image))
+print("Show PH : "+str(show_PH))
 
 
 bridge = CvBridge()
@@ -245,7 +257,7 @@ def save_callback(msg):
 
 
 def image_callback(ros_image):
-  #print 'got an image'
+  #print('got an image')
   global i
   global bridge
   global spacePressed
@@ -294,9 +306,143 @@ def image_callback(ros_image):
     cv2.imshow("Black Image Contours",black_image)
     cv2.waitKey(1)
 
+""" BELOW IS BELONG TO SALIH  BORDER"""
+
+def graph(formula, x_range,percent_of_Red):
+
+    x = np.array(x_range)  
+    y = eval(formula)
+    
+        # naming the x axis
+    plt.xlabel('Red (%)')
+    # naming the y axis
+    plt.ylabel('pH Values')
+    plt.plot(x, y)  
+    plt.plot(percent_of_Red,0.0956 * percent_of_Red + 4.2722 ,'ro') 
+    plt.annotate("Predicted pH: "+  str(0.0956 * percent_of_Red + 4.2722), (percent_of_Red,0.0956 * percent_of_Red + 4.2722 ))
+    plt.show()
+def image_processor(Image):
+
+    try:
+      img_cv2 = bridge.imgmsg_to_cv2(Image, "bgr8")
+    except CvBridgeError as e:
+      print(e)
+
+    # image wrapping
+    img_wrapped = warpImg(img_cv2,valTrackbars(),1000,800) 
+    # image_bgr = cv2.imread('/home/salih/Desktop/Mars.jpg', cv2.IMREAD_COLOR)
+
+
+    channels = cv2.mean(img_wrapped)
+    # Swap blue and red values (making it RGB, not BGR)
+    observation = np.array([(channels[2], channels[1], channels[0])])
+    #print(observation)
+
+    mean_of_Red   = channels[2]
+    mean_of_Green = channels[1]
+    mean_of_Blue  = channels[0]
+
+    # red percent will be used for forecasting pH
+    percent_of_Red = mean_of_Red * 100 /(mean_of_Red+mean_of_Blue+mean_of_Green)
+   # print(str(percent_of_Red)+" %")
+
+    # equation taken from : http://przyrbwn.icm.edu.pl/APP/PDF/132/app132z3-IIp086.pdf & https://core.ac.uk/download/pdf/158352623.pdf
+
+    # y = 0.0956 * x + 4.2722 ==> y: pH and x: Red Values (%)
+
+    #graph('0.0956*x+4.2722', range(0, 100),percent_of_Red)
+    predicted_pH = 0.0956 * percent_of_Red + 4.2722
+    
+   
+    # Text Settings:
+        # font
+    font = cv2.FONT_HERSHEY_SIMPLEX
+      
+    # org
+    org = (250, 500)
+      
+    # fontScale
+    fontScale = 1
+      
+    # Blue color in BGR
+    color = (255, 0, 0)
+      
+    # Line thickness of 2 px
+    thickness = 2
+      
+    # Using cv2.putText() method
+    image = cv2.putText(img_cv2, 'Predicted pH: '+str(predicted_pH), org, font, 
+                      fontScale, color, thickness, cv2.LINE_AA)
+    img_drawn = drawPoints(image,valTrackbars())
+    if(show_PH):
+      cv2.imshow("Image",img_drawn)
+      cv2.waitKey(1)
+      
+    else:
+      global p_Pressed
+      #rospy.loginfo("Predicted pH: "+ str(predicted_pH ))
+      if ( p_Pressed== True):
+        cv2.imwrite(DIRECTORY+"/savedImage_PH{}.jpg".format(datetime.now()),img_drawn)    #Need to be checked if location is fine ? 
+        print("pH Forecasted image saved SUCCESSFULLY!")
+        p_Pressed = False
+
+def warpImg(img, points, w, h, inv=False):
+    pts1 = np.float32(points)
+    pts2 = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
+    if inv:
+        matrix = cv2.getPerspectiveTransform(pts2, pts1)
+    else:
+        matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    imgWarp = cv2.warpPerspective(img, matrix, (w, h))
+    return imgWarp
+
+def nothing():
+  pass
+
+def initializeTrackbars(intialTracbarVals, wT=1000, hT=800):
+    cv2.namedWindow("Trackbars")
+    cv2.resizeWindow("Trackbars", 360, 240)
+    cv2.createTrackbar("Width Top", "Trackbars", intialTracbarVals[0], wT // 2, nothing)
+    cv2.createTrackbar("Height Top", "Trackbars", intialTracbarVals[1], hT, nothing)
+    cv2.createTrackbar("Width Bottom", "Trackbars", intialTracbarVals[2], wT // 2, nothing)
+    cv2.createTrackbar("Height Bottom", "Trackbars", intialTracbarVals[3], hT, nothing)
+
+
+def valTrackbars(wT=1000, hT=600):
+
+  if show_PH==False:
+    
+    widthTop = intialTracbarVals[0]
+    heightTop = intialTracbarVals[1]
+    widthBottom = intialTracbarVals[2]
+    heightBottom = intialTracbarVals[3]
   
-def main(args):
+  
+  else :
+     widthTop = cv2.getTrackbarPos("Width Top", "Trackbars")
+     heightTop = cv2.getTrackbarPos("Height Top", "Trackbars")
+     widthBottom = cv2.getTrackbarPos("Width Bottom", "Trackbars")
+     heightBottom = cv2.getTrackbarPos("Height Bottom", "Trackbars")
+     
+  
+  points = np.float32([(widthTop, heightTop), (wT - widthTop, heightTop),
+                    (widthBottom, heightBottom), (wT - widthBottom, heightBottom)])
+  return points
+
+
+         
+    
+
+
+def drawPoints(img, points):
+    for x in range(4):
+        cv2.circle(img, (int(points[x][0]), int(points[x][1])), 15, (0, 0, 255), cv2.FILLED)
+    return img
+
+""" BORDER """
+def main():
   rospy.init_node('marsyard_image_proccessing', anonymous=True)
+  rospy.Subscriber(sub_topic,Image, image_processor)
   rospy.Subscriber(sub_topic,Image, image_callback) #Check topic /zed2/right_raw/image_raw_color
   rospy.Subscriber("/image_saver/save", String, save_callback)
   #print(type(rospy.get_published_topics()))
@@ -307,5 +453,7 @@ def main(args):
   cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    main(sys.argv)
+    if(show_PH == True):
+        initializeTrackbars(intialTracbarVals)
+    main()
 
